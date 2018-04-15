@@ -34,7 +34,7 @@ datadir="adultchain"
 daemon="adultchaind"
 cli="adultchain-cli"
 gitdir="AdultChain"
-GITREPO="https://github.com/AdultChain/AdultChain.gitt"
+GITREPO="http://github.com/AdultChain/AdultChain.git"
 getblockcount="`curl -s http://explorer.adultchain.xxx/api/getblockcount`"
 PORT="6969"
 externalip="`curl -s http://whatismyip.akamai.com`"
@@ -203,7 +203,7 @@ else
 	echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
 	ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
 fi
-if [ "¬ufw satus | grep -qw active" ];
+if [ "Â¬ufw satus | grep -qw active" ];
 then
 	echo -e "${RED}UFW is active${NC}"
 else
