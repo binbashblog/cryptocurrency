@@ -18,12 +18,12 @@
 # Usage
 # 1) su to root (sudo su -) if not already root
 # or run with sudo
-# 2) chmod +x install_shekel.sh
-# 3) run ./install_shekel.sh
-# or sudo ./install_shekel.sh
+# 2) chmod +x install_nort.sh
+# 3) run ./install_nort.sh
+# or sudo ./install_nort.sh
 
 # Requirements
-# Ubuntu 14.04 or Ubuntu 16.04 or CentOS7
+# Ubuntu 14.04 or Ubuntu 16.04 or 18.04 or CentOS7
 # NOTE: Some projects may need the source code adapted to work if they fork off a different coin
 # this won't work for all masternodes out of the box.
 # 
