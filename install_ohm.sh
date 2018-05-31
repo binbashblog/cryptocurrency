@@ -1,6 +1,6 @@
 #!/bin/bash
-# Copyright Cryptojatt(c) 2018 
-# https://github.com/cryptojatt
+# Copyright BinBashBlog(c) 2018 
+# https://github.com/binbashblog
 # install_karmanode.sh version 1.0
 # Bitcoin Donation address: 19rUHQQ2PNGzGzvLgoY9SiEwUCcNxJ2cqT
 # Litecoin Donation address: LiBKYy6ZpCzTPpkqYaHPmjfuiQiLvxkNDE
@@ -203,7 +203,7 @@ else
 	echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
 	ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
 fi
-if [ "¬ufw satus | grep -qw active" ];
+if [ "Â¬ufw satus | grep -qw active" ];
 then
 	echo -e "${RED}UFW is active${NC}"
 else
