@@ -1,6 +1,6 @@
 #!/bin/bash
-# Copyright Cryptojatt(c) 2018
-# https://github.com/cryptojatt
+# Copyright BinBashBlog(c) 2018 
+# https://github.com/binbashblog
 # install_masternode.sh version 1.0
 # Bitcoin Donation address: 19rUHQQ2PNGzGzvLgoY9SiEwUCcNxJ2cqT
 # Litecoin Donation address: LiBKYy6ZpCzTPpkqYaHPmjfuiQiLvxkNDE
