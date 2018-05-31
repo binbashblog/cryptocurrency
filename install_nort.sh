@@ -34,9 +34,11 @@ datadir="northern"
 daemon="northernd"
 cli="northern-cli"
 gitdir="northern"
-GITREPO="https://github.com/Northerncryptodev/Northern.git"
+zip="northern-1.0.0-x86_64-linux-gnu.tar.gz"
+ziprepo="https://github.com/zabtc/Northern/releases/download/1.0.0/northern-1.0.0-x86_64-linux-gnu.tar.gz"
+GITREPO="https://github.com/zabtc/Northern.git"
 getblockcount="`curl -s http://explorer.nort.network/api/getblockcount`"
-PORT="60151"
+PORT="6942"
 externalip="`curl -s http://whatismyip.akamai.com`"
 ##### CHANGABLE VARIABLES #####
 
@@ -164,6 +166,21 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
 	#echo -e "masternodeaddr=$externalip:$PORT" >> $homedir/.$datadir/$datadir.conf
 	sed -i '/masternodeprivkey/c\' $homedir/.$datadir/$datadir.conf
 	echo "masternodeprivkey=$masternodeprivkey" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=207.246.69.246" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=209.250.233.104" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=45.77.82.101" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=138.68.167.127" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=45.77.218.53" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=207.246.86.118" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=207.246.71.67" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=173.199.123.21" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.241" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.242" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.243" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.244" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.245" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.246" >> $homedir/.$datadir/$datadir.conf
+	echo "addnode=149.56.4.247" >> $homedir/.$datadir/$datadir.conf
 	sleep 2
 	echo -e "${RED}Configuration completed successfully${NC}"
 	sleep 2
@@ -316,7 +333,7 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
         	libzmq="libzmq3"
         	run_apt
         	check_ufw
-        	git_install
+        	zip_install
         	start_masternode
 	fi # ends the 14.04 if-statement
 	if grep -q 16.04 /etc/*elease
@@ -326,7 +343,7 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
         	libzmq="libzmq3-dev"
         	run_apt
         	check_ufw
-        	git_install
+        	zip_install
         	start_masternode
 	fi # ends the 16.04 if-statement
 	if grep -q centos /etc/*elease
@@ -335,7 +352,7 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
         	echo -e "Installing ${GREEN}$COIN ${RED}on CentOS from scratch${NC}"
         	run_yum
         	check_iptables
-        	git_install
+        	zip_install
         	start_masternode
 	fi
 	if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q centos /etc/*elease;
@@ -386,6 +403,27 @@ clear
 } # end the iptables function
 
 ######## ======== INSTALL FUNCTIONS ======== ########
+zip_install () {
+clear
+	# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
+	wget $ziprepo
+	tar -xvzf northern-1.0.0-x86_64-linux-gnu.tar.gz
+	cp -r $daemon $cli /usr/local/bin
+	if [ -f "/usr/local/bin/$daemon" ]; 
+	then 
+		echo -e "${RED}found existing ${GREEN}$daemon"
+		echo -e "${RED}Deleting existing daemon${NC}"
+		rm /usr/local/bin/$daemon
+		rm /usr/local/bin/$cli
+		echo -e "${RED}$daemon and $cli manually deleted${NC}"
+		fi
+	fi
+	echo -e "${RED}$COIN installed${NC}"
+	sleep 2
+	cd ..
+	rm -rf $homedir/$zip
+}
+
 git_install () {
 clear
 	# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
@@ -476,7 +514,7 @@ then
 	libzmq="libzmq3"
 	run_apt
 	check_ufw
-	git_install
+	zip_install
 	configure
 	start_masternode
 fi # ends the 14.04 if-statement
@@ -487,7 +525,7 @@ then
 	libzmq="libzmq3-dev"
 	run_apt
 	check_ufw
-	git_install
+	zip_install
 	configure
 	start_masternode
 fi # ends the 16.04 if-statement
@@ -497,7 +535,7 @@ then
 	echo -e "Installing ${GREEN}$COIN ${RED}on CentOS from scratch${NC}"
 	run_yum
 	check_iptables
-	git_install
+	zip_install
 	configure
 	start_masternode
 fi
@@ -525,7 +563,7 @@ then
 		run_apt
 		echo -e "Installed any missing packages"
 		# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
-		git_install
+		zip_install
 		echo -e "Latest $daemon installed"
 		sleep 2
 		if [ -f /etc/systemd/system/$COIN.service ]; then
@@ -553,7 +591,7 @@ then
 		run_apt
 		echo -e "Installed any missing packages"
 		# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
-		git_install
+		zip_install
 		echo -e "Latest $daemon installed"
 		sleep 2
 		if [ -f /etc/systemd/system/$COIN.service ]; then
@@ -577,7 +615,7 @@ then
 		echo -e "Installing $COIN on CentOS from scratch"
 		run_yum
 		echo -e "Installed any missing packages"
-		git_install
+		zip_install
 		echo -e "Latest $daemon installed"
 		sleep 2
 		if [ -f /etc/systemd/system/$COIN.service ]; then
@@ -857,7 +895,7 @@ do
 echo -e "${RED}===================================================="
 echo -e "==          Masternode Wallet Installer            =="
 echo -e "==      For Ubuntu 14.04 or 16.04 or CentOS7      =="
-echo -e "==                  version 2.0                   =="
+echo -e "==                  version 3.0                   =="
 echo -e "==                                                =="
 echo -e "== Please donate:                                 =="
 echo -e "== Bitcoin:  19rUHQQ2PNGzGzvLgoY9SiEwUCcNxJ2cqT   =="
@@ -876,20 +914,18 @@ cat <<EOF
 $(echo -e    "${RED}    Please enter your choice:")
 
 $(echo -e    "${GREEN}    Install Wallet & Set Up masternode (1)")
-    Upgrade Wallet & Start masternode  (2)
-    Start masternode                   (3)
-    Install Systemd Service	       (4)
-    Install check script	       (5)
+    Start masternode                   (2)
+    Install Systemd Service	       (3)
+    Install check script	       (4)
            			       (Q)uit
 $(echo -e    "${NC}    ------------------------------")
 EOF
     read -n1 -s
     case "$REPLY" in
     "1")  install ;;
-    "2")  upgrade ;;
-    "3")  start_masternode ;;
-    "4")  install_service ;;
-    "5")  install_check ;;
+    "2")  start_masternode ;;
+    "3")  install_service ;;
+    "4")  install_check ;;
     "Q")  exit                      ;;
     "q")  echo -e "case sensitive!!"   ;; 
      * )  echo -e "invalid option"     ;;
