@@ -408,12 +408,12 @@ clear
 ######## ======== INSTALL FUNCTIONS ======== ########
 
 swap_install () {
-sudo dd if=/dev/zero of=/swapfile bs=1M count=2000
-sudo mkswap /swapfile
-sudo chown root:root /swapfile
-sudo chmod 0600 /swapfile
-sudo swapon /swapfile
-sudo echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fallocate -l 2G /swap
+chmod 600 /swap
+mkswap /swap
+swapon /swap
+echo "/swap none swap sw 0 0" >> /etc/fstabfallocate -l 2G /swap
+chmod 600 /swap
 }
 
 zip_install () {
