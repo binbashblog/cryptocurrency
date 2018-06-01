@@ -416,7 +416,6 @@ clear
 		rm /usr/local/bin/$daemon
 		rm /usr/local/bin/$cli
 		echo -e "${RED}$daemon and $cli manually deleted${NC}"
-		fi
 	fi
 	echo -e "${RED}$COIN installed${NC}"
 	sleep 2
