@@ -115,9 +115,11 @@ fi
 
 configure () { 
 clear
-rpcuser="{$COIN}rpc"
-rpcpassword=`$daemon 2>&1 | grep '^rpcpassword='`
-echo -e "${RED}$daemon has been run once, it should have created the .$datadir directory and generated the rpcpassword${NC}"
+rpcuser=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+mkdir $homedir/.$datadir
+touch $homedir/.$datadir/$dataconf
+#echo -e "${RED}$daemon has been run once, it should have created the .$datadir directory and generated the rpcpassword${NC}"
 owner=$(chown $currentuser:$currentuser $homedir/.$datadir -R)
 echo $owner
 sleep 2
@@ -199,34 +201,35 @@ else
 fi
 }	
 	
-check_ufw () {	
+check_ufw () {
 clear
 echo -e "${RED}Checking firewall ports...${NC}"
 sleep 2
 #ufw status  | grep $PORT
-if [ "ufw status | grep $PORT" ]; then
-	echo -e "${RED}Port ${GREEN}$PORT${RED} already in UFW${NC}"
-else
+if [ -z "ufw status | grep $PORT" ]; then
 	echo -e "${RED}Adding port ${GREEN}$PORT${RED} to UFW rules - ${GREEN}ufw allow $PORT/tcp${NC}"
-	ufw --force allow $PORT/tcp > /dev/null
-	echo -e "${GREEN}$PORT${RED} has been allowed${NC}"
+        ufw --force allow $PORT/tcp > /dev/null
+        echo -e "${GREEN}$PORT${RED} has been allowed${NC}"
+        
+else
+        echo -e "${RED}Port ${GREEN}$PORT${RED} already in UFW${NC}"
 fi
 echo -e "${RED}Checking SSH port in config...${NC}"
 ssh="`grep -r Port /etc/ssh/sshd_config | awk '{print $2}'`"
 echo -e "${RED}SSH port is port ${GREEN}$ssh...${NC}"
-if [ "ufw status | grep $ssh" ]; then
-	echo -e "${RED}Port ${GREEN}$ssh ${RED}already in UFW${NC}"
+if [ -z "ufw status | grep $ssh" ]; then
+        echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
+        ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
 else
-	echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
-	ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
+        echo -e "${RED}Port ${GREEN}$ssh ${RED}already in UFW${NC}"
 fi
-if [ "¬ufw satus | grep -qw active" ];
+if [ -z "ufw status | grep -qw active" ];
 then
-	echo -e "${RED}UFW is active${NC}"
+        echo -e "${RED}UFW is inactive..."
+        echo -e "Activating UFW${NC}"
+        ufw --force enable
 else
-	echo -e "${RED}UFW is inactive..."
-	echo -e "Activating UFW${NC}"
-	ufw --force enable
+        echo -e "${RED}UFW is active${NC}"
 fi
 
 echo -e ""
@@ -403,6 +406,16 @@ clear
 } # end the iptables function
 
 ######## ======== INSTALL FUNCTIONS ======== ########
+
+swap_install () {
+sudo dd if=/dev/zero of=/swapfile bs=1M count=2000
+sudo mkswap /swapfile
+sudo chown root:root /swapfile
+sudo chmod 0600 /swapfile
+sudo swapon /swapfile
+sudo echo "/swapfile none swap sw 0 0" >> /etc/fstab
+}
+
 zip_install () {
 clear
 	if [ -f "/usr/local/bin/$daemon" ]; 
@@ -513,6 +526,7 @@ then
 	libzmq="libzmq3"
 	run_apt
 	check_ufw
+	swap_install
 	zip_install
 	configure
 	start_masternode
@@ -524,6 +538,7 @@ then
 	libzmq="libzmq3-dev"
 	run_apt
 	check_ufw
+	swap_install
 	zip_install
 	configure
 	start_masternode
@@ -535,6 +550,7 @@ then
 	libzmq="libzmq3-dev"
 	run_apt
 	check_ufw
+	swap_install
 	zip_install
 	configure
 	start_masternode
@@ -545,6 +561,7 @@ then
 	echo -e "Installing ${GREEN}$COIN ${RED}on CentOS from scratch${NC}"
 	run_yum
 	check_iptables
+	swap_install
 	zip_install
 	configure
 	start_masternode
