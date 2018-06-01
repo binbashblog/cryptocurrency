@@ -405,10 +405,6 @@ clear
 ######## ======== INSTALL FUNCTIONS ======== ########
 zip_install () {
 clear
-	# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
-	wget $ziprepo
-	tar -xvzf northern-1.0.0-x86_64-linux-gnu.tar.gz
-	cp -r $daemon $cli /usr/local/bin
 	if [ -f "/usr/local/bin/$daemon" ]; 
 	then 
 		echo -e "${RED}found existing ${GREEN}$daemon"
@@ -417,6 +413,10 @@ clear
 		rm /usr/local/bin/$cli
 		echo -e "${RED}$daemon and $cli manually deleted${NC}"
 	fi
+	# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
+	wget $ziprepo
+	tar -xvzf northern-1.0.0-x86_64-linux-gnu.tar.gz
+	cp -r $daemon $cli /usr/local/bin
 	echo -e "${RED}$COIN installed${NC}"
 	sleep 2
 	cd ..
@@ -521,6 +521,17 @@ if grep -q 16.04 /etc/*elease
 then
 	echo -e "${RED}This is Ubuntu 16.04"
 	echo -e "Installing ${GREEN}$COIN ${RED}on 16.04 from scratch${NC}"
+	libzmq="libzmq3-dev"
+	run_apt
+	check_ufw
+	zip_install
+	configure
+	start_masternode
+fi # ends the 16.04 if-statement
+if grep -q 18.04 /etc/*elease
+then
+	echo -e "${RED}This is Ubuntu 18.04"
+	echo -e "Installing ${GREEN}$COIN ${RED}on 18.04 from scratch${NC}"
 	libzmq="libzmq3-dev"
 	run_apt
 	check_ufw
