@@ -36,7 +36,7 @@ cli="northern-cli"
 gitdir="northern"
 zip="northern-1.0.0-x86_64-linux-gnu.tar.gz"
 ziprepo="https://github.com/zabtc/Northern/releases/download/1.0.0/northern-1.0.0-x86_64-linux-gnu.tar.gz"
-GITREPO="https://github.com/zabtc/Northern.git"
+#GITREPO="https://github.com/zabtc/Northern.git"
 getblockcount="`curl -s http://explorer.nort.network/api/getblockcount`"
 PORT="6942"
 externalip="`curl -s http://whatismyip.akamai.com`"
@@ -115,24 +115,24 @@ fi
 
 configure () { 
 clear
-rpcuser=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+#rpcuser=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+#rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 mkdir $homedir/.$datadir
 touch $homedir/.$datadir/$dataconf
 #echo -e "${RED}$daemon has been run once, it should have created the .$datadir directory and generated the rpcpassword${NC}"
 owner=$(chown $currentuser:$currentuser $homedir/.$datadir -R)
 echo $owner
 sleep 2
-echo -e "${RED}Checking $homedir/.$datadir/$datadir.conf exists${NC}" & wait $!
-if [ -f $homedir/.$datadir/$datadir.conf ]; then
-        echo -e "${RED}$datadir.conf exists!"
+#echo -e "${RED}Checking $homedir/.$datadir/$datadir.conf exists${NC}" & wait $!
+#if [ -f $homedir/.$datadir/$datadir.conf ]; then
+ #       echo -e "${RED}$datadir.conf exists!"
         echo -e "Proceeding with configuring masternode...${NC}"
         sleep 2
-	#rpcuser=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-	#rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+	rpcuser=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+	rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 	echo "generating $homedir/.$datadir/$datadir.conf" & wait $!
 	echo rpcuser=$rpcuser >> $homedir/.$datadir/$datadir.conf & wait $!
-	echo $rpcpassword >> $homedir/.$datadir/$datadir.conf & wait $!
+	echo rpcpassword=$rpcpassword >> $homedir/.$datadir/$datadir.conf & wait $!
 	echo rpcallowip=127.0.0.1 >> $homedir/.$datadir/$datadir.conf & wait $!
 	#echo -e rpcport=$RPC_PORT >> ~/.$datadir/$datadir.conf & wait $!
 	echo staking=1 >> $homedir/.$datadir/$datadir.conf & wait $!
@@ -186,19 +186,7 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
 	sleep 2
 	echo -e "${RED}Configuration completed successfully${NC}"
 	sleep 2
-else
-        echo -e "${RED}$datadir.conf not found"
-	echo -e "This means the daemon install failed and the daemon didn't run properly"
-	echo -e "Please re-run the script or check the git repo paths are correct"
-	echo -e "Try installing the wallet from the git repo source manually to verify if the error is in this script or the source"
-        echo -e -n "Hit enter key to continue        :"
-        read -r goodbye
-        echo -e ""
-        echo -e "You will now be sent back to the menu"
-        echo -e "goodbye"
-        sleep 5
-	echo -e "done${NC}"
-fi
+
 }	
 	
 check_ufw () {
