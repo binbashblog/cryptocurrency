@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright BinBashBlog(c) 2018 
 # https://github.com/binbashblog
-# install_karmanode.sh version 1.0
+# install_karmanode.sh version 1.2
 # Bitcoin Donation address: 19rUHQQ2PNGzGzvLgoY9SiEwUCcNxJ2cqT
 # Litecoin Donation address: LiBKYy6ZpCzTPpkqYaHPmjfuiQiLvxkNDE
 # Shekel Donation address: JQJ1GanDU3c5RZwNjBXk68wFdxEJKLwWZU
@@ -23,7 +23,7 @@
 # or sudo ./install_ohm.sh
 
 # Requirements
-# Ubuntu 14.04 or Ubuntu 16.04 or CentOS7
+# Ubuntu 14.04 or Ubuntu 16.04 or Ubuntu 18.04 or CentOS7
 # NOTE: Some projects may need the source code adapted to work if they fork off a different coin
 # this won't work for all karmanodes out of the box.
 # 
@@ -182,34 +182,35 @@ else
 fi
 }	
 	
-check_ufw () {	
+check_ufw () {
 clear
 echo -e "${RED}Checking firewall ports...${NC}"
 sleep 2
 #ufw status  | grep $PORT
-if [ "ufw status | grep $PORT" ]; then
-	echo -e "${RED}Port ${GREEN}$PORT${RED} already in UFW${NC}"
-else
+if [ -z "ufw status | grep $PORT" ]; then
 	echo -e "${RED}Adding port ${GREEN}$PORT${RED} to UFW rules - ${GREEN}ufw allow $PORT/tcp${NC}"
-	ufw --force allow $PORT/tcp > /dev/null
-	echo -e "${GREEN}$PORT${RED} has been allowed${NC}"
+        ufw --force allow $PORT/tcp > /dev/null
+        echo -e "${GREEN}$PORT${RED} has been allowed${NC}"
+        
+else
+        echo -e "${RED}Port ${GREEN}$PORT${RED} already in UFW${NC}"
 fi
 echo -e "${RED}Checking SSH port in config...${NC}"
 ssh="`grep -r Port /etc/ssh/sshd_config | awk '{print $2}'`"
 echo -e "${RED}SSH port is port ${GREEN}$ssh...${NC}"
-if [ "ufw status | grep $ssh" ]; then
-	echo -e "${RED}Port ${GREEN}$ssh ${RED}already in UFW${NC}"
+if [ -z "ufw status | grep $ssh" ]; then
+        echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
+        ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
 else
-	echo -e "${RED}Adding ssh port to UFW rules - ${GREEN}ufw limit $ssh/tcp comment 'SSH port rate limit'${NC}"
-	ufw --force limit $ssh/tcp comment 'SSH port rate limit' > /dev/null
+        echo -e "${RED}Port ${GREEN}$ssh ${RED}already in UFW${NC}"
 fi
-if [ "¬ufw satus | grep -qw active" ];
+if [ -z "ufw status | grep -qw active" ];
 then
-	echo -e "${RED}UFW is active${NC}"
+        echo -e "${RED}UFW is inactive..."
+        echo -e "Activating UFW${NC}"
+        ufw --force enable
 else
-	echo -e "${RED}UFW is inactive..."
-	echo -e "Activating UFW${NC}"
-	ufw --force enable
+        echo -e "${RED}UFW is active${NC}"
 fi
 
 echo -e ""
@@ -328,6 +329,16 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
         	git_install
         	start_karmanode
 	fi # ends the 16.04 if-statement
+	if grep -q 18.04 /etc/*elease
+	then
+        	echo -e "${RED}This is Ubuntu 18.04"
+        	echo -e "Installing ${GREEN}$COIN ${RED}on 18.04 from scratch${NC}"
+        	libzmq="libzmq3-dev"
+        	run_apt
+        	check_ufw
+        	git_install
+        	start_karmanode
+	fi # ends the 18.04 if-statement
 	if grep -q centos /etc/*elease
 	then
         	echo -e "${RED}This is CentOS"
@@ -337,7 +348,7 @@ if [ -f $homedir/.$datadir/$datadir.conf ]; then
         	git_install
         	start_karmanode
 	fi
-	if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q centos /etc/*elease;
+	if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q 18.04 /etc/*elease && ! grep -q centos /etc/*elease;
 	then
         	echo -e "${RED}This is an unsupported OS${NC}"
 	fi # end unsupported OS check
@@ -354,34 +365,32 @@ else
 fi # end if $datadir.conf exists	
 } # end the upgrade
 
-check_iptables () {
+check_iptables () { 
 clear
-        echo -e "${RED}Checking firewall ports...${NC}"
-        sleep 2
-        if [ "iptables -L INPUT -nv | grep $PORT" ]
-        then
-                echo -e "${RED}Port ${GREEN}$PORT ${RED}already in iptables"
-        else
-                echo -e "${RED}Adding iptables rules - ${GREEN}iptables -I INPUT -p tcp --dport $PORT -j ACCEPT${NC}"
-                iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
-                service iptables save
-                echo -e "${GREEN}$PORT${RED} has been allowed${NC}"
-        fi
-        echo -e "${RED}Checking SSH port in config...${NC}"
-        ssh=`grep -r Port /etc/ssh/sshd_config | awk '{print $2}'`
-        echo -e "${RED}SSH port is port ${GREEN}$ssh...${NC}"
-        if [ "iptables -L INPUT -nv | grep $ssh" ]
-        then
-                echo -e "${RED}Port ${GREEN}$ssh ${RED}already in iptables"
-        else
-                echo -e "${RED}Adding ssh port to iptable rules - ${GREEN}iptables -I INPUT -p tcp --dport $ssh -j ACCEPT${NC}"
-                iptables -I INPUT -p tcp --dport $ssh -j ACCEPT
-                service iptables save
-                echo -e "${GREEN}$ssh${RED} has been allowed${NC}"
-        fi
-        echo -e ""
-        echo -e "${RED}IPtables checked and saved${NC}"
-        sleep 2
+	echo -e "${RED}Checking firewall ports...${NC}"
+	sleep 2
+	if [ "iptables -L INPUT -nv | grep -q $PORT" ]
+	then 
+		echo -e "${RED}Port ${GREEN}$PORT ${RED}already in iptables"
+	else
+		echo -e "${RED}Adding iptables rules - ${GREEN}iptables -I INPUT -p tcp --dport $PORT -j ACCEPT${NC}"
+		iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
+		service iptables save
+	fi
+	echo -e "${RED}Checking SSH port in config...${NC}"
+	ssh=`grep -r Port /etc/ssh/sshd_config | awk '{print $2}'`
+	echo -e "${RED}SSH port is port ${GREEN}$ssh...${NC}"
+	if [ "iptables -L INPUT -nv | grep -q $ssh" ]
+	then
+		echo -e "${RED}Port ${GREEN}$ssh ${RED}already in iptables"
+	else
+		echo -e "${RED}Adding ssh port to iptable rules - ${GREEN}iptables -I INPUT -p tcp --dport $ssh -j ACCEPT${NC}"
+		iptables -I INPUT -p tcp --dport $ssh -j ACCEPT
+		service iptables save
+	fi
+	echo -e ""
+	echo -e "${RED}IPtables checked and saved${NC}"
+	sleep 2
 } # end the iptables function
 
 ######## ======== INSTALL FUNCTIONS ======== ########
@@ -415,6 +424,14 @@ clear
 	rm -rf $homedir/$gitdir
 }
 
+install_swap () {
+fallocate -l 3G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo -e "/swapfile none swap sw 0 0 \n" >> /etc/fstab
+}
+
 run_apt () {
 clear
 apt-get update &&
@@ -435,7 +452,7 @@ apt-get install -yq \
 	software-properties-common \
 	$libzmq \
 	libminiupnpc-dev &&
-if [ ! -f "/etc/apt/sources.list.d/bitcoin-bitcoin-trusty.list" ] || [ ! -f "/etc/apt/sources.list.d/bitcoin-ubuntu-bitcoin-xenial.list" ]
+if [ ! -f "/etc/apt/sources.list.d/bitcoin-bitcoin-trusty.list" ] || [ ! -f "/etc/apt/sources.list.d/bitcoin-ubuntu-bitcoin-xenial.list" ] || [ ! -f "/etc/apt/sources.list.d/bitcoin-ubuntu-bitcoin-bionic.list" ]
 then 
    	add-apt-repository ppa:bitcoin/bitcoin -y
 	apt-get update
@@ -473,6 +490,7 @@ then
 	echo -e "${RED}This is Ubuntu 14.04"	
 	echo -e "Installing ${GREEN}$COIN ${RED}on 14.04.from scratch${NC}"
 	libzmq="libzmq3"
+	install_swap
 	run_apt
 	check_ufw
 	git_install
@@ -484,23 +502,37 @@ then
 	echo -e "${RED}This is Ubuntu 16.04"
 	echo -e "Installing ${GREEN}$COIN ${RED}on 16.04 from scratch${NC}"
 	libzmq="libzmq3-dev"
+	install_swap
 	run_apt
 	check_ufw
 	git_install
 	configure
 	start_karmanode
 fi # ends the 16.04 if-statement
+if grep -q 18.04 /etc/*elease
+then
+	echo -e "${RED}This is Ubuntu 18.04"
+	echo -e "Installing ${GREEN}$COIN ${RED}on 18.04 from scratch${NC}"
+	libzmq="libzmq3-dev"
+	install_swap
+	run_apt
+	check_ufw
+	git_install
+	configure
+	start_karmanode
+fi # ends the 18.04 if-statement
 if grep -q centos /etc/*elease
 then
 	echo -e "${RED}This is CentOS"
 	echo -e "Installing ${GREEN}$COIN ${RED}on CentOS from scratch${NC}"
+	install_swap
 	run_yum
 	check_iptables
 	git_install
 	configure
 	start_karmanode
 fi
-if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q centos /etc/*elease;
+if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q 18.04 /etc/*elease && ! grep -q centos /etc/*elease;
 then
 	echo -e "${RED}This is an unsupported OS${NC}" 
 fi # end unsupported OS check
@@ -570,6 +602,34 @@ then
 		start_karmanode
 		fi
 fi # ends the 16.04 if-statement
+if grep -q 18.04 /etc/*elease # This checks if any release file on the server reports Ubuntu 18.04, if not it skips this section
+then
+	echo -e "This is Ubuntu 18.04"
+		echo -e "Installing $COIN on 18.04 from scratch"
+		libzmq="libzmq3-dev"
+		echo -e "Patching system..."
+		# Patches the system, installs required packages and repositories
+		run_apt
+		echo -e "Installed any missing packages"
+		# Downloads and extracts the current latest release, moves to the correct location then runs $daemon
+		git_install
+		echo -e "Latest $daemon installed"
+		sleep 2
+		if [ -f /etc/systemd/system/$COIN.service ]; then
+			echo -e "$COIN Systemd service found!"
+			systemctl status $COIN.service
+			echo -e "Current status of service above"
+			sleep 5
+			echo -e "Starting $COIN via systemd script"
+			systemctl start $COIN.service
+			sleep 5
+		else
+			echo -e "Starting $daemon..."
+			$daemon -daemon
+				sleep 2
+		start_karmanode
+		fi
+fi # ends the 18.04 if-statement
 if grep -q centos /etc/*elease # This checks if any release file on the server reports Centos, if not it skips this section
 then
 	echo -e "This is CentOS"
@@ -593,14 +653,13 @@ then
 				sleep 2
 		start_karmanode
 		fi
-	if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q centos /etc/*elease;
+	if ! grep -q 14.04 /etc/*elease && ! grep -q 16.04 /etc/*elease && ! grep -q 18.04 /etc/*elease && ! grep -q centos /etc/*elease;
 	then
 		echo -e "This is an unsupported OS" 
 		# If the above two checks fail, i.e the lsb_release file does not show a supported version of Ubuntu, or any other linux, it will not support it and halt the script from making any changes
 	fi # end unsupported OS check	
 fi # end the centos check if-statement
 }  # end the karmanode_upgrade function
-
 
 install_service () {
 clear
