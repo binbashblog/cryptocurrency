@@ -1,0 +1,3 @@
+# cryptocurrency
+
+Masternode install scripts
